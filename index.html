@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>달토끼 벨루나 - WEEKLY SCHEDULE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+:root{--w:1920px;--h:1080px;}
+body{margin:0;background:#0b0b12;font-family:"Nunito",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:18px;color:#2f2a3a;}
+#capture{width:var(--w);height:var(--h);position:relative;overflow:hidden;border-radius:34px;background:linear-gradient(135deg,#f4f0ff,#e9fff7);}
+.wrap{position:absolute;inset:60px;display:grid;grid-template-columns:1.1fr .9fr;gap:30px;}
+.card{background:rgba(255,255,255,.7);border-radius:24px;padding:24px;}
+.rows{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+.row{display:grid;grid-template-columns:120px 1fr;gap:10px;}
+.day{font-weight:900;background:#fff;border-radius:999px;padding:10px;text-align:center;}
+.input{background:#fff;border-radius:16px;padding:10px;min-height:44px;}
+.frame{position:relative;border-radius:24px;background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+#photo{width:100%;height:100%;object-fit:cover;display:none;}
+.controls{position:fixed;left:18px;bottom:18px;display:flex;gap:8px;flex-wrap:wrap;}
+button,select,.filebtn{padding:10px 12px;border-radius:10px;border:none;background:#222;color:#fff;cursor:pointer;font-weight:700;}
+input[type=file]{display:none;}
+</style>
+</head>
+<body>
+<div id="capture">
+<div class="wrap">
+<section class="card left">
+<h1 style="margin:0;font-family:Jua;">SCHEDULE</h1>
+<div class="rows" id="rows"></div>
+</section>
+<section class="card right">
+<div class="frame">
+<img id="photo"/>
+</div>
+</section>
+</div>
+</div>
+
+<div class="controls">
+<button id="btnExport">JPG로 저장</button>
+<label class="filebtn" for="fileImg">이미지 업로드</label>
+<input id="fileImg" type="file" accept="image/*"/>
+<select id="presetImg">
+<option value="">캐릭터 선택</option>
+<option value="assets/velluna_01.png">벨루나 01</option>
+<option value="assets/velluna_02.png">벨루나 02</option>
+<option value="assets/velluna_03.png">벨루나 03</option>
+</select>
+<select id="fitMode">
+<option value="cover" selected>cover</option>
+<option value="contain">contain</option>
+</select>
+</div>
+
+<script>
+const DAYS=["MON","TUE","WED","THU","FRI","SAT","SUN"];
+const rows=document.getElementById("rows");
+const photo=document.getElementById("photo");
+DAYS.forEach(d=>{
+  const r=document.createElement("div");
+  r.className="row";
+  r.innerHTML=`<div class="day">${d}</div><div class="input" contenteditable="true"></div>`;
+  rows.appendChild(r);
+});
+
+document.getElementById("fileImg").addEventListener("change",e=>{
+ const f=e.target.files[0]; if(!f)return;
+ const reader=new FileReader();
+ reader.onload=()=>{photo.src=reader.result;photo.style.display="block";};
+ reader.readAsDataURL(f);
+});
+
+document.getElementById("presetImg").addEventListener("change",e=>{
+ const v=e.target.value;if(!v)return;
+ photo.crossOrigin="anonymous";
+ photo.src=v;photo.style.display="block";
+});
+
+document.getElementById("fitMode").addEventListener("change",e=>{
+ photo.style.objectFit=e.target.value;
+});
+
+document.getElementById("btnExport").addEventListener("click",async()=>{
+ const el=document.getElementById("capture");
+ const canvas=await html2canvas(el,{scale:2});
+ const a=document.createElement("a");
+ a.href=canvas.toDataURL("image/jpeg",0.95);
+ a.download="velluna_schedule.jpg";
+ a.click();
+});
+</script>
+</body>
+</html>
