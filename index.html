@@ -8,14 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nunito:wght@600;800&family=Dongle:wght@400;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
-  // Show script errors on screen (helps debugging on GitHub Pages)
-  window.addEventListener('error', (e)=>{
-    const msg = (e?.message || '스크립트 오류') + (e?.filename ? (' @ ' + e.filename.split('/').slice(-1)[0] + ':' + e.lineno) : '');
-    try{ showToast('오류: ' + msg); }catch(_){}
-  });
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     :root{
@@ -570,19 +563,7 @@
     }
 
 
-    /* 🎨 Decorative Illustration Background */
-    .decorArt{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      background:
-        url('assets/bg_velluna.png') center/cover no-repeat;
-      opacity:.35;
-      mix-blend-mode: soft-light;
-    }
-
-
-    /* 🎀 Frame inner decoration */
+    /* 🎀 Frame inner decoration (JPG friendly) */
     .frame::before{
       content:"";
       position:absolute;
@@ -594,44 +575,33 @@
         inset 0 0 30px rgba(179,156,255,.18),
         0 0 18px rgba(255,214,240,.25);
     }
-
     .frame::after{
       content:"";
       position:absolute;
-      width:120px; height:120px;
-      left:18px; top:18px;
-      background: radial-gradient(circle, rgba(255,255,255,.9) 0 4px, transparent 5px);
-      opacity:.7;
+      inset:34px;
+      border-radius: 200px 200px 18px 18px;
+      border: 1px solid rgba(255,255,255,.42);
       pointer-events:none;
+      opacity:.7;
     }
 
 
-    /* 🌸 Seasonal auto themes */
-    body.theme-spring #capture{
-      background:
-        radial-gradient(1200px 800px at 20% 20%, rgba(255,200,230,.45), transparent 60%),
-        linear-gradient(135deg,#fff0f6,#f3fff7);
+    /* 🖼️ Velluna background illustration + mixed decorative overlay */
+    .decorArt{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background: url('assets/bg_velluna.png') center/cover no-repeat;
+      opacity:.60;
+      mix-blend-mode: normal;
     }
-    body.theme-summer #capture{
-      background:
-        radial-gradient(1200px 800px at 80% 20%, rgba(180,240,255,.45), transparent 60%),
-        linear-gradient(135deg,#f0fbff,#f6fff2);
-    }
-    body.theme-winter #capture{
-      background:
-        radial-gradient(1200px 800px at 50% 0%, rgba(200,210,255,.45), transparent 60%),
-        linear-gradient(135deg,#f3f6ff,#eef5ff);
-    }
-
-
-    /* 🎨 Mix overlay (aurora + stars + ribbons + tape + bunny) */
     .mixOverlay{
       position:absolute;
       inset:0;
       pointer-events:none;
       background: url('assets/bg_overlay_mix.png') center/cover no-repeat;
-      opacity:.70;              /* strength */
-      mix-blend-mode: screen;   /* glow */
+      opacity:.55;              /* 은은하게 */
+      mix-blend-mode: screen;   /* 빛나는 느낌 */
     }
 
 </style>
@@ -681,12 +651,17 @@
                   <option value="cover">꽉 채우기(cover)</option>
                 </select>
                 
-                
-
-                
                 <select class="ui" id="themeMode" title="테마 선택">
                   <option value="space" selected>🌙 우주 몽환</option>
                   <option value="pastel">🎀 파스텔</option>
+                </select>
+
+                
+                <select class="ui" id="seasonMode" title="계절 테마">
+                  <option value="spring" selected>🌸 봄</option>
+                  <option value="summer">🌿 여름</option>
+                  <option value="autumn">🍁 가을</option>
+                  <option value="winter">❄️ 겨울</option>
                 </select>
 
                 <select class="ui" id="sizePreset" title="해상도">
@@ -1101,7 +1076,25 @@
   });
 
   
+  // Theme switch
+  function applyTheme(mode){
+    const root = document.documentElement;
+    if(mode === "pastel"){
+      root.style.setProperty("--violet","rgba(255,200,240,.6)");
+      root.style.setProperty("--mint","rgba(200,255,230,.6)");
+      root.style.setProperty("--pink","rgba(255,220,245,.6)");
+      root.style.setProperty("--blue","rgba(210,230,255,.6)");
+    }else{
+      root.style.setProperty("--violet","rgba(179,156,255,.72)");
+      root.style.setProperty("--mint","rgba(127,230,200,.62)");
+      root.style.setProperty("--pink","rgba(255,214,240,.58)");
+      root.style.setProperty("--blue","rgba(160,210,255,.52)");
+    }
+    localStorage.setItem("velluna_theme",mode);
   }
+
+  document.getElementById("themeMode")?.addEventListener("change",(e)=>{
+    applyTheme(e.target.value);
   });
 
   // restore theme
@@ -1109,94 +1102,55 @@
   const themeSel = document.getElementById("themeMode");
   if(themeSel){ themeSel.value = savedTheme; applyTheme(savedTheme); }
 
+
   
-  // 🌸 Season + Theme background (JPG-friendly, no animation)
-  function getSeason(){
-    const override = localStorage.getItem("velluna_season_mode") || "auto";
-    if(override !== "auto") return override;
+  // 🌸 Season switch (JPG 전용)
+  const LS_SEASON = "velluna_season_v14";
 
-    const m = new Date().getMonth()+1;
-    if(m>=3 && m<=5) return "spring";
-    if(m>=6 && m<=8) return "summer";
-    if(m>=9 && m<=11) return "autumn";
-    if(m===12 || m<=2) return "winter";
-    return "spring";
+  function seasonPalette(season){
+    // keep it cute + readable
+    const map = {
+      spring: { violet:"rgba(255,190,225,.56)", mint:"rgba(190,255,230,.52)", pink:"rgba(255,220,245,.50)", blue:"rgba(210,235,255,.46)", baseA:"#fff3fb", baseB:"#f4fffb", overlay:.55 },
+      summer: { violet:"rgba(185,215,255,.52)", mint:"rgba(175,255,240,.54)", pink:"rgba(255,225,235,.40)", blue:"rgba(185,235,255,.54)", baseA:"#f0fbff", baseB:"#f6fff2", overlay:.52 },
+      autumn: { violet:"rgba(230,190,255,.40)", mint:"rgba(255,225,180,.46)", pink:"rgba(255,210,200,.42)", blue:"rgba(220,210,255,.38)", baseA:"#fff6ee", baseB:"#fffdf6", overlay:.50 },
+      winter: { violet:"rgba(200,210,255,.54)", mint:"rgba(210,255,245,.40)", pink:"rgba(255,235,250,.34)", blue:"rgba(205,225,255,.54)", baseA:"#f3f6ff", baseB:"#eef5ff", overlay:.56 },
+    };
+    return map[season] || map.spring;
   }
 
-  function buildBackground(theme, season){
-    // theme palettes
-    const P = {
-      space: {
-        violet: "rgba(179,156,255,.72)",
-        mint:   "rgba(127,230,200,.62)",
-        pink:   "rgba(255,214,240,.58)",
-        blue:   "rgba(160,210,255,.52)",
-        baseA:  "#f6f3ff",
-        baseB:  "#e7fff7",
-      },
-      pastel: {
-        violet: "rgba(255,200,240,.62)",
-        mint:   "rgba(200,255,230,.62)",
-        pink:   "rgba(255,230,245,.60)",
-        blue:   "rgba(210,230,255,.58)",
-        baseA:  "#fff6fb",
-        baseB:  "#f4fffb",
-      }
-    }[theme] || null;
-
-    // season accent overlay
-    const S = {
-      spring: "radial-gradient(1000px 650px at 18% 18%, rgba(255,190,220,.28), transparent 62%)",
-      summer: "radial-gradient(1000px 650px at 82% 18%, rgba(170,235,255,.28), transparent 62%)",
-      winter: "radial-gradient(1000px 650px at 50% 0%, rgba(210,220,255,.30), transparent 62%)",
-      autumn: "radial-gradient(1000px 650px at 20% 20%, rgba(255,200,150,.28), transparent 62%)",
-    }[season] || "";
-
-    return [
-      S,
-      `radial-gradient(1400px 1000px at 10% 18%, ${P.violet}, transparent 64%)`,
-      `radial-gradient(1100px 820px at 90% 24%, ${P.mint}, transparent 62%)`,
-      `radial-gradient(1100px 820px at 52% 104%, ${P.pink}, transparent 60%)`,
-      `radial-gradient(900px 650px at 70% 72%, ${P.blue}, transparent 62%)`,
-      `linear-gradient(135deg, ${P.baseA}, ${P.baseB})`
-    ].filter(Boolean).join(",");
-  }
-
-  function applyThemeMode(mode){
-    localStorage.setItem("velluna_theme_mode", mode);
+  function applySeasonMode(season){
+    const p = seasonPalette(season);
     const captureEl = document.getElementById("capture");
-    if(!captureEl) return;
-    const season = getSeason();
-    captureEl.style.background = buildBackground(mode, season);
+    if(captureEl){
+      captureEl.style.background = [
+        `radial-gradient(1400px 1000px at 10% 18%, ${p.violet}, transparent 64%)`,
+        `radial-gradient(1100px 820px at 90% 24%, ${p.mint}, transparent 62%)`,
+        `radial-gradient(1100px 820px at 52% 104%, ${p.pink}, transparent 60%)`,
+        `radial-gradient(900px 650px at 70% 72%, ${p.blue}, transparent 62%)`,
+        `linear-gradient(135deg, ${p.baseA}, ${p.baseB})`
+      ].join(",");
+    }
+    // overlay strength
+    const overlayEl = document.querySelector(".mixOverlay");
+    if(overlayEl) overlayEl.style.opacity = String(p.overlay);
+    localStorage.setItem(LS_SEASON, season);
   }
 
-  // Theme UI wiring
-  const themeSel = document.getElementById("themeMode");
-  if(themeSel){
-    themeSel.addEventListener("change", (e)=> applyThemeMode(e.target.value));
-    const saved = localStorage.getItem("velluna_theme_mode") || "space";
-    themeSel.value = saved;
-    applyThemeMode(saved);
-  }
-
-  // Season UI wiring
+  // Wire UI
   const seasonSel = document.getElementById("seasonMode");
   if(seasonSel){
-    seasonSel.addEventListener("change", (e)=>{
-      localStorage.setItem("velluna_season_mode", e.target.value);
-      const themeNow = (document.getElementById("themeMode")?.value) || (localStorage.getItem("velluna_theme_mode") || "space");
-      applyThemeMode(themeNow);
-    });
-    const savedS = localStorage.getItem("velluna_season_mode") || "auto";
-    seasonSel.value = savedS;
+    seasonSel.addEventListener("change", (e)=> applySeasonMode(e.target.value));
+    const saved = localStorage.getItem(LS_SEASON) || "spring";
+    seasonSel.value = saved;
+    applySeasonMode(saved);
+  }else{
+    // if UI missing, still apply stored season
+    applySeasonMode(localStorage.getItem(LS_SEASON) || "spring");
   }
-
 
 
   // Init
   buildThumbs();
-
-  applySeason();
 
   // Restore fit/size
   const savedFit = localStorage.getItem(LS_FIT) || "contain";
@@ -1222,13 +1176,6 @@
 
   // If no days at all, add a friendly starter day (optional)
   // (leave empty to match your request: "원하는 요일만 추가")
-
-  // Show script errors on screen (helps debugging on GitHub Pages)
-  window.addEventListener('error', (e)=>{
-    const msg = (e?.message || '스크립트 오류') + (e?.filename ? (' @ ' + e.filename.split('/').slice(-1)[0] + ':' + e.lineno) : '');
-    try{ showToast('오류: ' + msg); }catch(_){}
-  });
-
 </script>
 </body>
 </html>
