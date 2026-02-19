@@ -682,7 +682,7 @@
           <!-- Add entry -->
           <div class="adder">
             <select id="addDay" aria-label="요일 선택"></select>
-            <input id="addTime" inputmode="numeric" placeholder="00:00" aria-label="시간" />
+            <input id="addTime" placeholder="시간/메모 (예: 20:00, 오후 8시, 오픈런)" aria-label="시간" / type="text">
             <input id="addText" placeholder="내용 (예: 배그 / 종겜 / 소통)" aria-label="내용" />
             <button id="btnAdd">+ 추가</button>
           </div>
@@ -988,15 +988,15 @@
   // Add entry with sorting
   function addEntry(dayId, timeRaw, text){
     if(!dayId) return {ok:false, msg:"요일을 먼저 추가해줘!"};
-    const time = timeInput.value.trim();
-    if(!time) return {ok:false, msg:"시간 형식이 이상해! 예: 09:30 / 930 / 9"};
+    const time = (timeRaw||"").trim(); // 자유 텍스트
+    if(!time) return {ok:false, msg:"시간/메모를 입력해줘!"};
     const t = (text||"").trim();
     if(!t) return {ok:false, msg:"내용을 입력해줘!"};
 
     const next = getEntries();
     if(!Array.isArray(next[dayId])) next[dayId] = [];
-    next[dayId].push({ id: uid("e"), t: time.t, m: time.m, text: t });
-    next[dayId] = sortArr(next[dayId]);
+    // ✅ 추가한 순서 그대로
+    next[dayId].push({ id: uid("e"), t: time, text: t });
     setEntries(next);
     return {ok:true};
   }
@@ -1013,7 +1013,7 @@
     document.getElementById("addTime").focus();
     document.getElementById("addTime").select();
     render();
-    showToast("추가 + 정렬 완료!");
+    showToast("추가 완료!");
   });
 
   document.getElementById("addText").addEventListener("keydown",(e)=>{
