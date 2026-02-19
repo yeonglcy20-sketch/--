@@ -781,8 +781,7 @@
   }
 
   function sortArr(arr){
-    return arr.slice().sort((a,b)=> (a.m-b.m) || (a.text||"").localeCompare(b.text||""));
-  }
+    return arr.slice()}
 
   function ensureDay(dayId){
     const entries = getEntries();
@@ -989,7 +988,7 @@
   // Add entry with sorting
   function addEntry(dayId, timeRaw, text){
     if(!dayId) return {ok:false, msg:"요일을 먼저 추가해줘!"};
-    const time = normalizeTime(timeRaw);
+    const time = timeInput.value.trim();
     if(!time) return {ok:false, msg:"시간 형식이 이상해! 예: 09:30 / 930 / 9"};
     const t = (text||"").trim();
     if(!t) return {ok:false, msg:"내용을 입력해줘!"};
