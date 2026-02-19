@@ -591,7 +591,7 @@
       position:absolute;
       inset:0;
       pointer-events:none;
-      background: none;
+      background: url('assets/bg_lunavell.png') center/cover no-repeat;
       opacity:.60;
       mix-blend-mode: normal;
     }
@@ -599,7 +599,7 @@
       position:absolute;
       inset:0;
       pointer-events:none;
-      background: none;
+      background: url('assets/bg_overlay_mix.png') center/cover no-repeat;
       opacity:.82;              /* 은은하게 */
       mix-blend-mode: screen;   /* 빛나는 느낌 */
     }
@@ -614,7 +614,9 @@
     <div class="stars3"></div>
     <div class="sparkleFx"></div>
     <div class="aurora"></div>
-<div class="moon"></div>
+    <div class="decorArt"></div>
+    <div class="mixOverlay"></div>
+    <div class="moon"></div>
     <div class="noise"></div>
 
     <div class="wrap">
@@ -625,7 +627,7 @@
           <h1>SCHEDULE</h1>
           <div class="badge">달토끼 루나Vell</div>
         </div>
-        <div class="sub noCapture">✅ 원하는 요일만 만들고(오른쪽) → 시간 기준 자동 정렬 → JPG 저장 ✨</div>
+        <div class="sub noCapture">✅ 원하는 요일만 만들고(오른쪽) → 시간 기준 자동  → JPG 저장 ✨</div>
 
         <div class="rows" id="rows"></div>
       </section>
@@ -680,7 +682,7 @@
           <!-- Add entry -->
           <div class="adder">
             <select id="addDay" aria-label="요일 선택"></select>
-            <input id="addTime" placeholder="시간/메모 (예: 20:00, 오후 8시, 오픈런)" aria-label="시간" / type="text">
+            <input id="addTime" inputmode="numeric" placeholder="00:00" aria-label="시간" />
             <input id="addText" placeholder="내용 (예: 배그 / 종겜 / 소통)" aria-label="내용" />
             <button id="btnAdd">+ 추가</button>
           </div>
@@ -699,8 +701,11 @@
   <div class="toast" id="toast">저장 완료!</div>
 
 <script>
-  const PRESETS = [];
-
+  const PRESETS = [
+  { name: "루나Vell 기본 1", full: "assets/lunavell_01.png", thumb: "assets/thumbs/lunavell_01.png" },
+  { name: "루나Vell 기본 2", full: "assets/lunavell_02.png", thumb: "assets/thumbs/lunavell_02.png" },
+  { name: "루나Vell 기본 3", full: "assets/lunavell_03.png", thumb: "assets/thumbs/lunavell_03.png" },
+];
 
   const LS_DAYS = "lunavell_custom_days_v5";
   const LS_ENTRIES = "lunavell_custom_entries_v5"; // {dayId: [{id,t,m,text}]}
@@ -776,7 +781,8 @@
   }
 
   function sortArr(arr){
-    return arr.slice()}
+    return arr.slice();
+  }
 
   function ensureDay(dayId){
     const entries = getEntries();
@@ -895,9 +901,16 @@
   }
 
   function buildThumbs(){
-    const box = document.getElementById("thumbBox");
-    if(box) box.style.display = "none";
-  });
+    gridEl.innerHTML = "";
+    PRESETS.forEach(p=>{
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "thumb";
+      item.dataset.id = p.id;
+      item.innerHTML = `<img alt="${p.name}" src="${p.thumb}"/><div class="cap">${p.name}</div>`;
+      item.addEventListener("click", ()=> selectPreset(p.id));
+      gridEl.appendChild(item);
+    });
   }
 
   function applyImage(src){
@@ -976,15 +989,14 @@
   // Add entry with sorting
   function addEntry(dayId, timeRaw, text){
     if(!dayId) return {ok:false, msg:"요일을 먼저 추가해줘!"};
-    const time = (timeRaw||"").trim(); // 자유 텍스트
-    if(!time) return {ok:false, msg:"시간/메모를 입력해줘!"};
+    const time = normalizeTime(timeRaw);
+    if(!time) return {ok:false, msg:"시간 형식이 이상해! 예: 09:30 / 930 / 9"};
     const t = (text||"").trim();
     if(!t) return {ok:false, msg:"내용을 입력해줘!"};
 
     const next = getEntries();
     if(!Array.isArray(next[dayId])) next[dayId] = [];
-    // ✅ 추가한 순서 그대로
-    next[dayId].push({ id: uid("e"), t: time, text: t });
+    next[dayId].push({ id: uid("e"), t: time.t, m: time.m, text: t });
     setEntries(next);
     return {ok:true};
   }
@@ -1001,7 +1013,7 @@
     document.getElementById("addTime").focus();
     document.getElementById("addTime").select();
     render();
-    showToast("추가 완료!");
+    showToast("추가 +  완료!");
   });
 
   document.getElementById("addText").addEventListener("keydown",(e)=>{
@@ -1136,16 +1148,10 @@
   }
 
 
-  
-  // assets 폴더 없이도 동작하도록 이미지 로드 오류 무시
-  const photoEl = document.getElementById("photo");
-  if(photoEl){
-    photoEl.addEventListener("error", ()=>{ /* ignore missing preset images */ });
-  }
-
   // Init
   buildThumbs();
-// Restore fit/size
+
+  // Restore fit/size
   const savedFit = localStorage.getItem(LS_FIT) || "contain";
   document.getElementById("fitMode").value = savedFit;
   setFit(savedFit);
