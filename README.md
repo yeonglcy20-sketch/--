@@ -43,8 +43,3 @@
 
 ## v18_no_autosort
 - 시간 기준 자동 정렬 제거(추가한 순서대로 표시)
-
-
-## v18_no_autosort_free_time
-- 시간 입력을 자유 텍스트로 변경(type=text)
-- 시간 검증/정규화 제거
