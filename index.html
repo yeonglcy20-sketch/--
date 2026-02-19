@@ -591,7 +591,7 @@
       position:absolute;
       inset:0;
       pointer-events:none;
-      background: url('assets/bg_lunavell.png') center/cover no-repeat;
+      background: none;
       opacity:.60;
       mix-blend-mode: normal;
     }
@@ -599,7 +599,7 @@
       position:absolute;
       inset:0;
       pointer-events:none;
-      background: url('assets/bg_overlay_mix.png') center/cover no-repeat;
+      background: none;
       opacity:.82;              /* 은은하게 */
       mix-blend-mode: screen;   /* 빛나는 느낌 */
     }
@@ -614,9 +614,7 @@
     <div class="stars3"></div>
     <div class="sparkleFx"></div>
     <div class="aurora"></div>
-    <div class="decorArt"></div>
-    <div class="mixOverlay"></div>
-    <div class="moon"></div>
+<div class="moon"></div>
     <div class="noise"></div>
 
     <div class="wrap">
@@ -701,11 +699,8 @@
   <div class="toast" id="toast">저장 완료!</div>
 
 <script>
-  const PRESETS = [
-  { name: "루나Vell 기본 1", full: "assets/lunavell_01.png", thumb: "assets/thumbs/lunavell_01.png" },
-  { name: "루나Vell 기본 2", full: "assets/lunavell_02.png", thumb: "assets/thumbs/lunavell_02.png" },
-  { name: "루나Vell 기본 3", full: "assets/lunavell_03.png", thumb: "assets/thumbs/lunavell_03.png" },
-];
+  const PRESETS = [];
+
 
   const LS_DAYS = "lunavell_custom_days_v5";
   const LS_ENTRIES = "lunavell_custom_entries_v5"; // {dayId: [{id,t,m,text}]}
@@ -900,16 +895,9 @@
   }
 
   function buildThumbs(){
-    gridEl.innerHTML = "";
-    PRESETS.forEach(p=>{
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = "thumb";
-      item.dataset.id = p.id;
-      item.innerHTML = `<img alt="${p.name}" src="${p.thumb}"/><div class="cap">${p.name}</div>`;
-      item.addEventListener("click", ()=> selectPreset(p.id));
-      gridEl.appendChild(item);
-    });
+    const box = document.getElementById("thumbBox");
+    if(box) box.style.display = "none";
+  });
   }
 
   function applyImage(src){
@@ -1148,10 +1136,16 @@
   }
 
 
+  
+  // assets 폴더 없이도 동작하도록 이미지 로드 오류 무시
+  const photoEl = document.getElementById("photo");
+  if(photoEl){
+    photoEl.addEventListener("error", ()=>{ /* ignore missing preset images */ });
+  }
+
   // Init
   buildThumbs();
-
-  // Restore fit/size
+// Restore fit/size
   const savedFit = localStorage.getItem(LS_FIT) || "contain";
   document.getElementById("fitMode").value = savedFit;
   setFit(savedFit);
